@@ -82,7 +82,7 @@ app.post("/forgot-password", async (req, res) => {
   const mailOptions = {
     to: email,
     subject: "Password Reset",
-    text: `To reset your password, click on this link: http://your-app/reset-password/${token}`,
+    text: `To reset your password, click on this link: https://coruscating-madeleine-f36c44.netlify.app/reset-password/${token}`,
   };
 
   transporter.sendMail(mailOptions, (error) => {
@@ -127,22 +127,26 @@ app.post("/login", async (req, res) => {
 
 // Route to handle password reset
 app.post("/reset-password/:token", async (req, res) => {
-  const { token } = req.params;
-  const { newPassword } = req.body;
+  try {
+    const { token } = req.params;
+    const { newPassword } = req.body;
+    console.log(token);
+    // Find the user with the matching token
+    const user = await User.findOne({ resetToken: token });
 
-  // Find the user with the matching token
-  const user = await User.findOne({ resetToken: token });
+    if (!user) {
+      return res.status(400).json({ message: "Invalid token" });
+    }
 
-  if (!user) {
-    return res.status(400).json({ message: "Invalid token" });
+    // Update the user's password and clear the token
+    user.resetToken = undefined;
+    user.password = newPassword;
+    await user.save();
+
+    return res.status(200).json({ message: "Password reset successfully" });
+  } catch (error) {
+    console.log(error);
   }
-
-  // Update the user's password and clear the token
-  user.resetToken = undefined;
-  user.password = newPassword;
-  await user.save();
-
-  return res.status(200).json({ message: "Password reset successfully" });
 });
 
 app.listen(9000, () => {
