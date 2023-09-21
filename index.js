@@ -3,9 +3,11 @@ import bodyParser from "body-parser";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 import mongoose from "mongoose";
+import cors from "cors";
 
 const app = express();
 app.use(bodyParser.json());
+app.use(cors());
 
 // MongoDB setup
 mongoose.connect(
